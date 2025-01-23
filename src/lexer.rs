@@ -148,7 +148,7 @@ impl<'a> Lexer<'a> {
     fn read_ident(&mut self) -> String {
         let mut ident = String::new();
         while let Some(c) = self.curr {
-            if c.is_whitespace() || c == ')' {
+            if c.is_whitespace() || c == ')' || c == '(' {
                 break;
             }
             ident.push(c);
@@ -180,16 +180,26 @@ impl<'a> Lexer<'a> {
 mod test {
     use super::*;
 
-    const TEST_STR: &str = r#"
-        (def x 10)
-        (def y 4.123 + / * < >)
-        (defn add)
-        (def name "Marwan")
-    "#;
-
     #[test]
-    fn test_lexer() {
-        let lexer = Lexer::lex(TEST_STR).unwrap();
+    fn test_string() {
+        let input: &str = "(def name \"Marwan\")";
+        let lexer = Lexer::lex(input).unwrap();
+
+        assert_eq!(
+            lexer,
+            vec![
+                Token::LParen,
+                Token::Def,
+                Token::Ident("name".to_owned()),
+                Token::String("Marwan".to_owned()),
+                Token::RParen,
+            ]
+        )
+    }
+    #[test]
+    fn test_int() {
+        let input: &str = "(def x 10)";
+        let lexer = Lexer::lex(input).unwrap();
 
         assert_eq!(
             lexer,
@@ -199,6 +209,18 @@ mod test {
                 Token::Ident("x".to_owned()),
                 Token::Int(10),
                 Token::RParen,
+            ]
+        )
+    }
+
+    #[test]
+    fn test_float() {
+        let input: &str = "(def y 4.123 + / * < >)";
+
+        let lexer = Lexer::lex(input).unwrap();
+        assert_eq!(
+            lexer,
+            vec![
                 Token::LParen,
                 Token::Def,
                 Token::Ident("y".to_owned()),
@@ -209,14 +231,30 @@ mod test {
                 Token::LT,
                 Token::GT,
                 Token::RParen,
+            ]
+        )
+    }
+
+    #[test]
+    fn test_function() {
+        let input: &str = "(defn add (x y) (x + y))";
+        let lexer = Lexer::lex(input).unwrap();
+
+        assert_eq!(
+            lexer,
+            vec![
                 Token::LParen,
                 Token::Defn,
                 Token::Ident("add".to_owned()),
+                Token::LParen,
+                Token::Ident("x".to_owned()),
+                Token::Ident("y".to_owned()),
                 Token::RParen,
                 Token::LParen,
-                Token::Def,
-                Token::Ident("name".to_owned()),
-                Token::String("Marwan".to_owned()),
+                Token::Ident("x".to_owned()),
+                Token::Plus,
+                Token::Ident("y".to_owned()),
+                Token::RParen,
                 Token::RParen,
             ]
         )
