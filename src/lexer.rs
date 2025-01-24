@@ -146,7 +146,26 @@ impl<'a> Lexer<'a> {
         }
     }
 
+    fn is_balanced(input: &str) -> bool {
+        let mut stack = Vec::new();
+
+        for c in input.chars() {
+            match c {
+                '(' => stack.push(c),
+                ')' => {
+                    if stack.is_empty() {
+                        return false;
+                    }
+                    stack.pop();
+                }
+                _ => {}
+            }
+        }
+        stack.is_empty()
+    }
+
     pub fn lex(input: &str) -> Vec<Token> {
+        assert!(Self::is_balanced(input));
         let mut lexer = Lexer::new(input);
         let mut tokens = Vec::new();
         while let Some(token) = lexer.spit_token() {

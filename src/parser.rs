@@ -5,7 +5,7 @@ use std::rc::Rc;
 use crate::lexer::Token;
 use crate::lsymc::Lsymc;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum ParserError {
     NotList,
     ShortList,
@@ -117,5 +117,21 @@ mod test {
                 ])),
             ]))
         );
+    }
+
+    #[test]
+    fn test_not_a_list() {
+        let input: &str = "def x 10";
+        let lexer = Lexer::lex(input);
+        let prog = parse(lexer).err().unwrap();
+        assert_eq!(prog, ParserError::NotList);
+    }
+
+    #[test]
+    #[should_panic]
+    fn not_balanced() {
+        let input: &str = "(def name \"Marwan\" ";
+        let lexer = Lexer::lex(input);
+        let _prog = parse(lexer).unwrap();
     }
 }
