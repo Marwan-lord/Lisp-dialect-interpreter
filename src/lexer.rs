@@ -18,6 +18,8 @@ pub enum Token {
     Float(f64),
     LParen,
     RParen,
+    If,
+    Else,
 }
 
 pub struct Lexer<'a> {
@@ -74,6 +76,8 @@ impl<'a> Lexer<'a> {
                 match ident.as_str() {
                     "def" => Some(Token::Def),
                     "defn" => Some(Token::Defn),
+                    "if" => Some(Token::If),
+                    "else" => Some(Token::Else),
                     _ => Some(Token::Ident(ident)),
                 }
             }
@@ -231,6 +235,30 @@ mod test {
                 Token::Ident("x".to_owned()),
                 Token::Plus,
                 Token::Ident("y".to_owned()),
+                Token::RParen,
+                Token::RParen,
+            ]
+        )
+    }
+
+    #[test]
+    fn test_if_else() {
+        let input: &str = "(if(cond)(result)else(other_result))";
+        let lexer = Lexer::lex(input);
+        assert_eq!(
+            lexer,
+            vec![
+                Token::LParen,
+                Token::If,
+                Token::LParen,
+                Token::Ident("cond".to_owned()),
+                Token::RParen,
+                Token::LParen,
+                Token::Ident("result".to_owned()),
+                Token::RParen,
+                Token::Else,
+                Token::LParen,
+                Token::Ident("other_result".to_owned()),
                 Token::RParen,
                 Token::RParen,
             ]
