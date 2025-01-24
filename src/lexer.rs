@@ -38,58 +38,34 @@ impl<'a> Lexer<'a> {
         self.curr
     }
 
+    fn return_token_advance(&mut self, t: Token) -> Token {
+        self.next();
+        t
+    }
+
     fn spit_token(&mut self) -> Option<Token> {
         self.skip_whitespace();
 
         match self.curr? {
-            '(' => {
-                self.next();
-                Some(Token::LParen)
-            }
+            '(' => Some(self.return_token_advance(Token::LParen)),
 
-            ')' => {
-                self.next();
-                Some(Token::RParen)
-            }
+            ')' => Some(self.return_token_advance(Token::RParen)),
 
-            '+' => {
-                self.next();
-                Some(Token::Plus)
-            }
+            '+' => Some(self.return_token_advance(Token::Plus)),
 
-            '-' => {
-                self.next();
-                Some(Token::Minus)
-            }
+            '-' => Some(self.return_token_advance(Token::Minus)),
 
-            '/' => {
-                self.next();
-                Some(Token::Slash)
-            }
+            '/' => Some(self.return_token_advance(Token::Slash)),
 
-            '*' => {
-                self.next();
-                Some(Token::Astrisk)
-            }
-            '<' => {
-                self.next();
-                Some(Token::LT)
-            }
+            '*' => Some(self.return_token_advance(Token::Astrisk)),
 
-            '>' => {
-                self.next();
-                Some(Token::GT)
-            }
+            '<' => Some(self.return_token_advance(Token::LT)),
 
-            '=' => {
-                self.next();
-                Some(Token::Equal)
-            }
+            '>' => Some(self.return_token_advance(Token::GT)),
 
-            '!' => {
-                self.next();
-                Some(Token::NotEqual)
-            }
+            '=' => Some(self.return_token_advance(Token::Equal)),
+
+            '!' => Some(self.return_token_advance(Token::NotEqual)),
 
             '"' => Some(Token::String(self.read_string())),
 
@@ -105,12 +81,12 @@ impl<'a> Lexer<'a> {
             c if c.is_numeric() => {
                 let result = self.read_numeric();
                 if result.contains('.') {
-                    Some(Token::Float(
-                        result.parse::<f64>().expect("Error parsing float"),
-                    ))
+                    Some(Token::Float(result.parse::<f64>().unwrap_or_else(|e| {
+                        panic!("Error parsing Float type {} {}", result, e)
+                    })))
                 } else {
                     Some(Token::Int(
-                        result.parse::<i64>().expect("Error parsing int"),
+                        result.parse::<i64>().expect("Error parsing int type"),
                     ))
                 }
             }
@@ -166,13 +142,13 @@ impl<'a> Lexer<'a> {
         }
     }
 
-    pub fn lex(input: &str) -> Option<Vec<Token>> {
+    pub fn lex(input: &str) -> Vec<Token> {
         let mut lexer = Lexer::new(input);
         let mut tokens = Vec::new();
         while let Some(token) = lexer.spit_token() {
             tokens.push(token);
         }
-        Some(tokens)
+        tokens
     }
 }
 
@@ -182,8 +158,8 @@ mod test {
 
     #[test]
     fn test_string() {
-        let input: &str = "(def name \"Marwan\")";
-        let lexer = Lexer::lex(input).unwrap();
+        let input: &str = "(def name \"Marwan\" \"\")";
+        let lexer = Lexer::lex(input);
 
         assert_eq!(
             lexer,
@@ -192,6 +168,7 @@ mod test {
                 Token::Def,
                 Token::Ident("name".to_owned()),
                 Token::String("Marwan".to_owned()),
+                Token::String("".to_owned()),
                 Token::RParen,
             ]
         )
@@ -199,7 +176,7 @@ mod test {
     #[test]
     fn test_int() {
         let input: &str = "(def x 10)";
-        let lexer = Lexer::lex(input).unwrap();
+        let lexer = Lexer::lex(input);
 
         assert_eq!(
             lexer,
@@ -217,7 +194,7 @@ mod test {
     fn test_float() {
         let input: &str = "(def y 4.123 + / * < >)";
 
-        let lexer = Lexer::lex(input).unwrap();
+        let lexer = Lexer::lex(input);
         assert_eq!(
             lexer,
             vec![
@@ -238,7 +215,7 @@ mod test {
     #[test]
     fn test_function() {
         let input: &str = "(defn add (x y) (x + y))";
-        let lexer = Lexer::lex(input).unwrap();
+        let lexer = Lexer::lex(input);
 
         assert_eq!(
             lexer,
