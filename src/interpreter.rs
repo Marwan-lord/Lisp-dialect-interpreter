@@ -43,7 +43,7 @@ fn eval_keyword(list: &[Lsymc], st: &mut Rc<RefCell<Store>>) -> Result<Lsymc, St
     }
 }
 
-fn eval_syms(s: &str, st: Rc<RefCell<Store>>) -> Result<Lsymc, String> {
+fn eval_syms(s: &str, st: &mut Rc<RefCell<Store>>) -> Result<Lsymc, String> {
     let val = match s {
         "#true" => return Ok(Lsymc::Bool(true)),
         "#false" => return Ok(Lsymc::Bool(false)),
@@ -57,6 +57,61 @@ fn eval_syms(s: &str, st: Rc<RefCell<Store>>) -> Result<Lsymc, String> {
     Ok(val.unwrap().clone())
 }
 
-fn eval_lsymc(lsymc: &Lsymc, st: Rc<RefCell<Store>>) -> Result<Lsymc, String> {
+fn eval_lsymc(lsymc: &Lsymc, st: &mut Rc<RefCell<Store>>) -> Result<Lsymc, String> {
     let mut current = Box::new(lsymc.clone());
+
+}
+
+fn eval_def(list: &[Lsymc], st: &mut Rc<RefCell<Store>>) -> Result<Lsymc, String> {
+    let mut res = Lsymc::Nil;
+
+    let bind_st = Rc::new(RefCell::new(Store::new()));
+
+    if list.len() < 3 {
+        return Err("Invalid def statement".to_owned());
+    }
+
+
+    let binds = match list[1].clone() {
+        Lsymc::List(binds) => binds,
+        _ => { return Err("Invalid def binds".to_owned()); }
+    };
+
+    for bind in binds.iter() {
+        let bind = match bind {
+            Lsymc::List(bind) => bind,
+            _ => {
+                return Err("Invalid def binding".to_owned());
+            }
+
+        };
+
+        if bind.len() != 2 {
+            return Err("Invalid binding for def ".to_owned());
+        }
+
+        let name = match bind[0].clone() {
+            Lsymc::Ident(name) => name,
+            _ => {
+                return Err("Invalid def binding".to_owned());
+            }
+        };
+
+        let value = eval_lsymc(&bind[1], st)?;
+        bind_st.borrow_mut().set(name.as_str(), value);
+    }
+    println!("def args: {:?}", bind_st);
+
+    let mut new_st = Rc::new(RefCell::new(Store::extend(st.clone())));
+    new_st.borrow_mut().update(bind_st);
+
+    for sym in list[2..].iter() {
+        res = eval_lsymc(sym, &mut new_st)?;
+    }
+
+    Ok(res)
+}
+
+fn eval_defn(list: &[Lsymc], st: &mut Rc<RefCell<Store>>) -> Result<Lsymc, String> {
+
 }
