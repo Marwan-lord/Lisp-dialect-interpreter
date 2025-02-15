@@ -5,5 +5,5 @@ pub mod parser;
 pub mod store;
 
 fn main() {
-    println!("Work in progress..");
+    println!("Work in progress");
 }
