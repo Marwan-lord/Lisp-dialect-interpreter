@@ -11,6 +11,7 @@ pub enum ParserError {
     ShortList,
 }
 
+
 impl fmt::Display for ParserError {
     fn fmt(&self, _f: &mut Formatter<'_>) -> Result<(), fmt::Error> {
         todo!()
