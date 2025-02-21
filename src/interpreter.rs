@@ -113,5 +113,5 @@ fn eval_def(list: &[Lsymc], st: &mut Rc<RefCell<Store>>) -> Result<Lsymc, String
 }
 
 fn eval_defn(list: &[Lsymc], st: &mut Rc<RefCell<Store>>) -> Result<Lsymc, String> {
-
+    return Ok(Lsymc::Nil);
 }
